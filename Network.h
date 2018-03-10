@@ -14,6 +14,7 @@ class Network {
 public:
     Network(int inputs, std::vector<int> layersSizes);
     std::vector<double> calculate(std::vector<double> inputs);
+    void train(std::vector<double> inputsData, std::vector<double> expectedOutputs);
 
 private:
     std::vector<std::vector<Neuron<>>> layers;

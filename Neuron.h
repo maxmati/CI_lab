@@ -22,7 +22,13 @@ template<typename ActivationFunction = TanHActivation>
 class Neuron : public NeuronI {
 public:
     typedef std::pair<NeuronI*, double> InputType;
+
     virtual ~Neuron() = default;
+
+    Neuron() = default;
+    Neuron(const Neuron&) = delete;
+    Neuron(Neuron&&) = default;
+
     double getOutput() const override{
         double sum = std::accumulate(std::begin(inputs), std::end(inputs), 0.0, [](double current, const InputType &it) {
             return current + it.first->getOutput() * it.second;
@@ -35,6 +41,10 @@ public:
     }
     void addOutput(NeuronI* neuron){
         outputs.push_back(neuron);
+    }
+
+    void propagateError(double delta) override {
+
     }
 
 private:

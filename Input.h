@@ -13,6 +13,8 @@ public:
     double getOutput() const override;
     void setOutput(double output);
 
+    void propagateError(double delta) override;
+
 private:
     double output;
 };

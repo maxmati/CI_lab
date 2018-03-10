@@ -11,3 +11,7 @@ double Input::getOutput() const{
 void Input::setOutput(double output) {
     this->output = output;
 }
+
+void Input::propagateError(double delta) {
+
+}
