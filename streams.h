@@ -5,7 +5,7 @@
 #include <memory>
 #include <experimental/optional>
 
-namespace std { using experimental::optional; }
+namespace std { using experimental::optional; } // NOLINT
 
 namespace stream {
     template<typename T>
@@ -26,7 +26,7 @@ namespace stream {
             std::optional<InT> elem = source->pop();
 
             if (elem) {
-                return mapper(*elem);
+                return mapper(std::move(*elem));
             } else {
                 return {};
             }
@@ -111,7 +111,7 @@ namespace stream {
 
         std::optional<typename IteratorT::value_type> pop() override {
             if (first == last) return {};
-            return *first++;
+            return std::move(*first++);
         }
 
     private:
@@ -128,7 +128,7 @@ namespace stream {
             T vector;
             std::optional<typename T::value_type> elem = source->pop();
             while (elem) {
-                vector.push_back(*elem);
+                vector.push_back(std::move(*elem));
                 elem = source->pop();
             }
 
@@ -147,7 +147,7 @@ namespace stream {
             auto s = std::unique_ptr<StreamSource<OutT>>(new MapStreamSource<OutT, T>(std::move(source), mapper));
 
             return Stream<OutT>(std::move(s));
-        };
+        }
 
         Stream<T> forEach(std::function<void(T)> consumer) {
             map<T>([&](auto item){ consumer(item); return item; });

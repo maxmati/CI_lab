@@ -10,10 +10,12 @@
 
 class Input : public NeuronI {
 public:
-    double getOutput() const override;
+    double getOutput() override;
     void setOutput(double output);
 
     void propagateError(double delta) override;
+
+    double getLastOutput() override;
 
 private:
     double output;

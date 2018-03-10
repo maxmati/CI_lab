@@ -13,12 +13,15 @@
 class Network {
 public:
     Network(int inputs, std::vector<int> layersSizes);
-    std::vector<double> calculate(std::vector<double> inputs);
+    std::vector<double> calculate(const std::vector<double>& inputs);
     void train(std::vector<double> inputsData, std::vector<double> expectedOutputs);
 
 private:
+    RandomGenerator generator;
+    Input bias;
     std::vector<std::vector<Neuron<>>> layers;
     std::vector<Input> inputs;
+
 };
 
 

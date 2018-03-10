@@ -5,12 +5,10 @@
 #include "Neuron.h"
 
 #include "streams.h"
-#include "utils.h"
 
 #include <algorithm>
-#include <numeric>
 
-static std::vector<double> normalizeInputs(const std::vector<Neuron<>::InputType> &inputs) {
+/*static*/ std::vector<double> normalizeInputs(const std::vector<Neuron<>::InputType> &inputs) {
     const auto inputComparator = [](const auto &a, const auto &b) {
         return a->first->getOutput() > b->first->getOutput();
     };
@@ -21,4 +19,6 @@ static std::vector<double> normalizeInputs(const std::vector<Neuron<>::InputType
     std::transform(std::begin(inputs), std::end(inputs), std::back_inserter(result), [&](const auto &input) {
         return (input.first->getOutput() - minInput) / (maxInput - minInput);
     });
+
+    return result;
 }

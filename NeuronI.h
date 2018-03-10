@@ -9,8 +9,9 @@
 class NeuronI {
 public:
     virtual ~NeuronI() = default;
-    virtual double getOutput() const = 0;
+    virtual double getOutput() = 0;
     virtual void propagateError(double delta) = 0;
+    virtual double getLastOutput() = 0;
 };
 
 
