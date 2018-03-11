@@ -14,8 +14,13 @@
 
 class TanHActivation {
 public:
-    static double activation(double x) {
+    static constexpr double activation(double x) {
         return tanh(x);
+    }
+
+    static constexpr double derivative(double x) {
+        const auto d = activation(x);
+        return 1 - d * d;
     }
 };
 
@@ -33,7 +38,7 @@ public:
 template<typename ActivationFunction = SigmActivation>
 class Neuron : public NeuronI {
 private:
-    const double eta = 0.1;
+    const double eta = 0.2;
 public:
     typedef std::pair<NeuronI *, double> InputType;
 
