@@ -28,6 +28,7 @@ public:
                 == std::distance(row.second.begin(), std::max_element(row.second.begin(), row.second.end()))) {
                 ++good;
             }
+//          if(static_cast<int>(round(result[0]) == static_cast<int>(row.second[0]))) ++good;
         }
 
         return static_cast<double>(good) / data.size();
@@ -51,22 +52,29 @@ public:
     }
 
     template<typename T>
-    void trainBatch(T data) {
+    void trainBatch(T data, size_t batches = 4) {
 
-//        size_t batchSize = data.size()/4;
-//
-//        for (size_t i = 0; i < batchSize; ++i) {
-//            std::swap(data[i],data[generator.randomIndex(data.size)]);
+        size_t batchSize = data.size()/batches;
+
+//        for (size_t i = 0; i < data.size(); ++i) {
+//            std::swap(data[i],data[generator.randomIndex(data.size())]);
 //        }
+//        std::shuffle(std::begin(data), std::end(data), generator.get());
 
-        for (const auto &row: data) {
-            train(std::vector<double>{row.first.begin(), row.first.end()},
-                  std::vector<double>{row.second.begin(), row.second.end()});
-        }
+        auto it = data.begin();
+        auto end = it;
+        for(size_t i = 0; i < batches; ++i) {
+            std::advance(end, batchSize);
 
-        for (auto &layer: layers) {
-            for (auto &neuron: layer) {
-                neuron.applyTraining(data.size());
+            for(; it != end; ++it){
+                train(std::vector<double>{it->first.begin(), it->first.end()},
+                      std::vector<double>{it->second.begin(), it->second.end()});
+            }
+
+            for (auto &layer: layers) {
+                for (auto &neuron: layer) {
+                    neuron.applyTraining(batchSize);
+                }
             }
         }
     }

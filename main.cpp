@@ -72,9 +72,9 @@ int main() {
     TrainData<4, 3> testData = loadData<4, 3>("data/iris-test.csv");
 //    normalizeData(td);
 //    normalizeData(testData);
-    Network net{2, {20, 10, 3}};
+    Network net{4, {10, 8, 5, 3}};
 
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < 4000; ++i) {
         if(i%100 == 0) {
             std::cout << i << std::endl;
             std::cout << net.testFitnes(testData) << " " << net.testError(testData) << std::endl;

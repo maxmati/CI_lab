@@ -30,6 +30,9 @@ public:
         std::uniform_int_distribution<> distribution{0, size - 1};
         return distribution(gen);
     }
+  std::mt19937& get() {
+      return gen;
+  }
 };
 
 #endif //CI_UTILS_H

@@ -46,7 +46,7 @@ struct InputType{
 template<typename ActivationFunction = SigmActivation>
 class Neuron : public NeuronI {
 private:
-    double eta = 0.5;
+    double eta = 0.2;
 public:
     ~Neuron() override = default;
 
@@ -92,7 +92,7 @@ public:
             input.weight += input.dWeight/batch_size;
             input.dWeight = 0;
         }
-        eta *= 0.9999;
+        eta *= 0.99999;
     }
 
     double getLastOutput() override {
