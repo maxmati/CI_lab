@@ -15,15 +15,20 @@ void zip(In1 input1It, const In1 &input1End, In2 input2It, Out outputIt) {
     }
 }
 
-class RandomGenerator{
+class RandomGenerator {
 private:
     std::random_device rd{};
     std::mt19937 gen{rd()};
 
-    std::normal_distribution<> d{0,0.5};
+    std::normal_distribution<> d{0, 0.5};
 public:
-    double generate(){
+    double generate() {
         return d(gen);
+    }
+
+    int randomIndex(int size) {
+        std::uniform_int_distribution<> distribution{0, size - 1};
+        return distribution(gen);
     }
 };
 

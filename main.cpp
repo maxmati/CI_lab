@@ -1,6 +1,7 @@
 #include <iostream>
 #include <array>
 #include <fstream>
+#include <algorithm>
 #include "Network.h"
 
 template<typename T>
@@ -19,7 +20,7 @@ template<size_t in, size_t out>
 using TrainData = std::vector<TrainRow<in, out>>;
 
 template<size_t in, size_t out>
-TrainData<in, out> loadData(const std::string& trainDataFile) {
+TrainData<in, out> loadData(const std::string &trainDataFile) {
     TrainData<in, out> result;
     std::ifstream file{trainDataFile};
     TrainRow<in, out> data;
@@ -40,16 +41,48 @@ TrainData<in, out> loadData(const std::string& trainDataFile) {
     return result;
 }
 
-int main() {
-    TrainData<4,3> td = loadData<4,3>("data/iris-train.csv");
-    Network net{2, {30, 20, 20, 15, 3}};
+template<size_t in, size_t out>
+/*static*/ void normalizeData(TrainData<in, out> &inputs) {
+    for (size_t i = 0; i < in; ++i) {
+        const auto inputComparator = [i](const auto &a, const auto &b) {
+            return a->first[i] > b->first[i];
+        };
 
-    for (int i = 0; i < 10; ++i) {
-        std::cout<<i<<std::endl;
-        for(const auto& row: td){
-            net.train(std::vector<double>{row.first.begin(), row.first.end()}, std::vector<double>{row.second.begin(), row.second.end()});
+        double minInput = std::min(std::begin(inputs), std::end(inputs), inputComparator)->first[i];
+        double maxInput = std::max(std::begin(inputs), std::end(inputs), inputComparator)->first[i];
+
+        for (auto &row: inputs) {
+            row.first[i] = (row.first[i] - minInput) / (maxInput - minInput);
         }
+
     }
+
+
+
+//    std::vector<double> result(inputs.size());
+//    std::transform(std::begin(inputs), std::end(inputs), std::back_inserter(result), [&](const auto &input) {
+//        return (input.neuron->getOutput() - minInput) / (maxInput - minInput);
+//    });
+//
+//    return result;
+}
+
+int main() {
+    TrainData<4, 3> td = loadData<4, 3>("data/iris-train.csv");
+    TrainData<4, 3> testData = loadData<4, 3>("data/iris-test.csv");
+//    normalizeData(td);
+//    normalizeData(testData);
+    Network net{2, {20, 10, 3}};
+
+    for (int i = 0; i < 10000; ++i) {
+        if(i%100 == 0) {
+            std::cout << i << std::endl;
+            std::cout << net.testFitnes(testData) << " " << net.testError(testData) << std::endl;
+        }
+        net.trainBatch(td);
+    }
+
+    std::cout << net.testFitnes(testData) << std::endl;
 
     std::cout << net.calculate({5.20, 2.70, 3.90, 1.40}) << std::endl;
 

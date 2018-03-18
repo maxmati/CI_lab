@@ -68,4 +68,10 @@ void Network::train(std::vector<double> inputsData, std::vector<double> expected
             it.second->propagateError(it.first);
             return 0;
         }).flush();//collect(stream::PushBackColector<std::vector<double>>{});
+
+    for(auto& layer: layers){
+        for(auto& neuron: layer){
+            neuron.train();
+        }
+    }
 }

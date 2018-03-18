@@ -35,13 +35,19 @@ public:
     }
 };
 
+struct InputType{
+    NeuronI* neuron;
+    double weight;
+    double dWeight = 0;
+
+    InputType(NeuronI *neuron, double weight);
+};
+
 template<typename ActivationFunction = SigmActivation>
 class Neuron : public NeuronI {
 private:
-    const double eta = 0.2;
+    double eta = 0.5;
 public:
-    typedef std::pair<NeuronI *, double> InputType;
-
     ~Neuron() override = default;
 
     explicit Neuron(RandomGenerator &generator) : generator(generator) {};
@@ -53,7 +59,7 @@ public:
     double getOutput() override {
         double sum = std::accumulate(std::begin(inputs), std::end(inputs), 0.0,
                                      [](double current, const InputType &it) {
-                                         return current + it.first->getOutput() * it.second;
+                                         return current + it.neuron->getOutput() * it.weight;
                                      });
 
         lastOutput = ActivationFunction::activation(sum);
@@ -69,11 +75,24 @@ public:
     }
 
     void propagateError(double delta) override {
+        this->delta += delta;
+    }
+
+    void train() {
         for (auto &input: inputs) {
-            input.first->propagateError(delta * input.second * ActivationFunction::derivative(lastOutput));
-            input.second +=
-                -1. * eta * delta * ActivationFunction::derivative(lastOutput) * input.first->getLastOutput();
+            input.neuron->propagateError(delta * input.weight * ActivationFunction::derivative(lastOutput));
+            input.dWeight +=
+                -1. * eta * delta * ActivationFunction::derivative(lastOutput) * input.neuron->getLastOutput();
         }
+        delta = 0;
+    }
+
+    void applyTraining(size_t batch_size){
+        for (auto &input: inputs) {
+            input.weight += input.dWeight/batch_size;
+            input.dWeight = 0;
+        }
+        eta *= 0.9999;
     }
 
     double getLastOutput() override {
@@ -85,6 +104,7 @@ private:
     std::vector<InputType> inputs;
     std::vector<NeuronI *> outputs;
     double lastOutput = 0;
+    double delta = 0;
 };
 
 
