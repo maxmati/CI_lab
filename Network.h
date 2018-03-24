@@ -45,7 +45,7 @@ public:
 
     template<typename T>
     std::vector<double> calculate(const T &inputsData) {
-        assert(inputsData.size() == inputsCount);
+//        assert(inputsData.size() == inputsCount);
         for (size_t i = 0; i < inputsCount; ++i) {
             inputs[i].setOutput(inputsData[i]);
         }
@@ -95,6 +95,7 @@ public:
     void train(const T &trainData, const T &testData) {
         double lastError;// = std::numeric_limits<double>::max();
         double currentError = std::numeric_limits<double>::max();
+        double fitness;
         do {
             lastError = currentError;
 
@@ -103,15 +104,18 @@ public:
             }
 
             currentError = testError(testData);
-            std::cout << testFitness(testData) << " " << currentError << std::endl;
-        } while (lastError > currentError);
+            fitness = testFitness(testData);
+            std::cout << fitness << " " << currentError << std::endl;
+        } while (lastError > currentError || fitness < 0.9);
     }
 
 private:
     template<typename T>
-    void trainBatch(const T &data, size_t batches = 4) {
+    void trainBatch(T data, size_t batches = 4) {
 
         size_t batchSize = data.size() / batches;
+
+//        std::shuffle(data.begin(), data.end(), generator.get());
 
         auto it = data.begin();
         auto end = it;
@@ -120,19 +124,19 @@ private:
 
             for (; it != end; ++it) {
                 trainExample(std::vector<double>{it->first.begin(), it->first.end()},
-                             std::vector<double>{it->second.begin(), it->second.end()});
+                             std::vector<double>{it->second.begin(), it->second.end()}, batchSize);
             }
 
             for (auto &layer: layers) {
                 for (auto &neuron: layer) {
-                    neuron.applyTraining(batchSize);
+                    neuron.applyTraining(1);
                 }
             }
         }
     }
 
     template<typename T1, typename T2>
-    void trainExample(const T1 &inputsData, const T2 &expectedOutputs) {
+    void trainExample(const T1 &inputsData, const T2 &expectedOutputs, size_t batch_size) {
         std::vector<double> realOutputs = calculate(inputsData);
 
         std::vector<NeuronI *> neurons{};
@@ -141,20 +145,14 @@ private:
                            return &neuron;
                        });
 
-        stream::fromEnumerable(realOutputs)
-            .zip(stream::fromEnumerable(expectedOutputs))
-            .template map<double>([](const auto &it) {
-                return it.first - it.second;
-            }).zip(stream::fromEnumerable(neurons))
-            .
-                template map<int>([](auto it) {
-                it.second->propagateError(it.first);
-                return 0;
-            }).flush();
+        for (int i = 0; i < realOutputs.size(); ++i) {
+            double error = realOutputs[i] - expectedOutputs[i];
+            neurons[i]->propagateError(error);
+        }
 
         for (auto &layer: layers) {
             for (auto &neuron: layer) {
-                neuron.train();
+                neuron.train(batch_size);
             }
         }
     }

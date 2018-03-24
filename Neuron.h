@@ -14,11 +14,11 @@
 
 class TanHActivation {
 public:
-    static constexpr double activation(double x) {
+    static double activation(double x) {
         return tanh(x);
     }
 
-    static constexpr double derivative(double x) {
+    static double derivative(double x) {
         const auto d = activation(x);
         return 1 - d * d;
     }
@@ -35,8 +35,8 @@ public:
     }
 };
 
-struct InputType{
-    NeuronI* neuron;
+struct InputType {
+    NeuronI *neuron;
     double weight;
     double dWeight = 0;
 
@@ -78,18 +78,19 @@ public:
         this->delta += delta;
     }
 
-    void train() {
+    void train(size_t batch_size) {
         for (auto &input: inputs) {
             input.neuron->propagateError(delta * input.weight * ActivationFunction::derivative(lastOutput));
             input.dWeight +=
-                -1. * eta * delta * ActivationFunction::derivative(lastOutput) * input.neuron->getLastOutput();
+                (-1. * eta * delta * ActivationFunction::derivative(lastOutput) * input.neuron->getLastOutput()) /
+                batch_size;
         }
         delta = 0;
     }
 
-    void applyTraining(size_t batch_size){
+    void applyTraining(size_t batch_size) {
         for (auto &input: inputs) {
-            input.weight += input.dWeight/batch_size;
+            input.weight += input.dWeight / batch_size;
             input.dWeight = 0;
         }
         eta *= 0.99999;

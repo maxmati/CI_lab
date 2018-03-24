@@ -42,9 +42,13 @@ TrainData<in, out> loadData(const std::string &trainDataFile) {
 }
 
 int main() {
-    TrainData<4, 3> td = loadData<4, 3>("data/iris-train.csv");
-    TrainData<4, 3> testData = loadData<4, 3>("data/iris-test.csv");
+    TrainData<4, 3> td = loadData<4, 3>("data/iris-train-shufle.csv");
+    TrainData<4, 3> testData = loadData<4, 3>("data/iris-train-shufle.csv");
+//    TrainData<4, 3> td = loadData<4, 3>("data/iris-train.csv");
+//    TrainData<4, 3> testData = loadData<4, 3>("data/iris-test-shufle.csv");
     Network<4> net{{10, 8, 5, 3}};
+
+//    std::shuffle(td.begin(), td.end(), RandomGenerator{}.get());
 
     net.train(td, testData);
 
