@@ -5,7 +5,6 @@
 #ifndef CI_NETWORK_H
 #define CI_NETWORK_H
 
-
 #include <vector>
 #include <algorithm>
 #include <cassert>
@@ -19,11 +18,13 @@ class Network {
 public:
     explicit Network(std::vector<int> layersSizes) {
         bias.setOutput(1);
-        layers = stream::fromEnumerable(layersSizes).template map<std::vector<Neuron<>>>([this](int size) {
-            auto layer = std::vector<Neuron<>>{};
-            std::generate_n(std::back_inserter(layer), size, [this]() { return Neuron<>(generator); });
-            return layer;
-        }).collect(stream::PushBackColector<std::vector<std::vector<Neuron<>>>>{});
+        std::transform(std::begin(layersSizes), std::end(layersSizes),
+                       std::back_inserter(layers), [this](int size) {
+                auto layer = std::vector<Neuron<>>{};
+                std::generate_n(std::back_inserter(layer), size, [this]() { return Neuron<>(generator); });
+                return layer;
+            }
+        );
 
         for (Neuron<> &neuron: layers[0]) {
             neuron.addInput(&bias);
@@ -45,7 +46,7 @@ public:
 
     template<typename T>
     std::vector<double> calculate(const T &inputsData) {
-//        assert(inputsData.size() == inputsCount);
+        assert(inputsData.size() == inputsCount);
         for (size_t i = 0; i < inputsCount; ++i) {
             inputs[i].setOutput(inputsData[i]);
         }
@@ -106,16 +107,16 @@ public:
             currentError = testError(testData);
             fitness = testFitness(testData);
             std::cout << fitness << " " << currentError << std::endl;
-        } while (lastError > currentError || fitness < 0.9);
+        } while (lastError > currentError || fitness < 0.8);
     }
 
 private:
     template<typename T>
-    void trainBatch(T data, size_t batches = 4) {
+    void trainBatch(T data, size_t batches = 2) {
 
         size_t batchSize = data.size() / batches;
 
-//        std::shuffle(data.begin(), data.end(), generator.get());
+        std::shuffle(data.begin(), data.end(), generator.get());
 
         auto it = data.begin();
         auto end = it;
@@ -124,35 +125,30 @@ private:
 
             for (; it != end; ++it) {
                 trainExample(std::vector<double>{it->first.begin(), it->first.end()},
-                             std::vector<double>{it->second.begin(), it->second.end()}, batchSize);
+                             std::vector<double>{it->second.begin(), it->second.end()});
             }
 
             for (auto &layer: layers) {
                 for (auto &neuron: layer) {
-                    neuron.applyTraining(1);
+                    neuron.applyTraining(batchSize);
                 }
             }
         }
     }
 
     template<typename T1, typename T2>
-    void trainExample(const T1 &inputsData, const T2 &expectedOutputs, size_t batch_size) {
+    void trainExample(const T1 &inputsData, const T2 &expectedOutputs) {
         std::vector<double> realOutputs = calculate(inputsData);
 
-        std::vector<NeuronI *> neurons{};
-        std::transform(std::begin(layers.back()), std::end(layers.back()), std::back_inserter(neurons),
-                       [](auto &neuron) {
-                           return &neuron;
-                       });
-
-        for (int i = 0; i < realOutputs.size(); ++i) {
+        for (size_t i = 0; i < realOutputs.size(); ++i) {
             double error = realOutputs[i] - expectedOutputs[i];
-            neurons[i]->propagateError(error);
+            layers.back()[i].propagateError(error);
         }
 
-        for (auto &layer: layers) {
-            for (auto &neuron: layer) {
-                neuron.train(batch_size);
+        for (auto layer = layers.rbegin(), end = layers.rend();
+             layer != end; ++layer ) {
+            for (auto &neuron: *layer) {
+                neuron.train();
             }
         }
     }
@@ -163,6 +159,5 @@ private:
     std::array<Input, inputsCount> inputs;
 
 };
-
 
 #endif //CI_NETWORK_H

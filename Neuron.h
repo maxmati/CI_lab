@@ -76,14 +76,16 @@ public:
 
     void propagateError(double delta) override {
         this->delta += delta;
+//        for (auto &input: inputs) {
+//        }
     }
 
-    void train(size_t batch_size) {
+    void train() {
         for (auto &input: inputs) {
             input.neuron->propagateError(delta * input.weight * ActivationFunction::derivative(lastOutput));
+
             input.dWeight +=
-                (-1. * eta * delta * ActivationFunction::derivative(lastOutput) * input.neuron->getLastOutput()) /
-                batch_size;
+                -1. * eta * delta * ActivationFunction::derivative(lastOutput) * input.neuron->getLastOutput();
         }
         delta = 0;
     }
@@ -106,6 +108,12 @@ private:
     std::vector<NeuronI *> outputs;
     double lastOutput = 0;
     double delta = 0;
+
+  static int getNextId() {
+      static int nextId = 0;
+      return nextId++;
+}
+  int id = getNextId();
 };
 
 
