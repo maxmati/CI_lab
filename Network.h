@@ -46,7 +46,7 @@ public:
 
     template<typename T>
     std::vector<double> calculate(const T &inputsData) {
-        assert(inputsData.size() == inputsCount);
+//        assert(inputsData.size() == inputsCount);
         for (size_t i = 0; i < inputsCount; ++i) {
             inputs[i].setOutput(inputsData[i]);
         }
@@ -100,14 +100,14 @@ public:
         do {
             lastError = currentError;
 
-            for (int i = 0; i < 50; ++i) {
+            for (int i = 0; i < 10; ++i) {
                 trainBatch(trainData);
             }
 
             currentError = testError(testData);
             fitness = testFitness(testData);
             std::cout << fitness << " " << currentError << std::endl;
-        } while (lastError > currentError || fitness < 0.8);
+        } while (lastError > currentError || fitness < 0.9);
     }
 
 private:
@@ -136,6 +136,7 @@ private:
         }
     }
 
+public:
     template<typename T1, typename T2>
     void trainExample(const T1 &inputsData, const T2 &expectedOutputs) {
         std::vector<double> realOutputs = calculate(inputsData);
@@ -152,6 +153,7 @@ private:
             }
         }
     }
+private:
 
     RandomGenerator generator;
     Input bias;

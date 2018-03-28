@@ -3,6 +3,7 @@
 #include <fstream>
 #include <algorithm>
 #include "Network.h"
+#include "AutoEncoders.h"
 
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& dt) {
@@ -42,16 +43,26 @@ TrainData<in, out> loadData(const std::string& trainDataFile) {
 }
 
 int main() {
-    TrainData<4, 3> td = loadData<4, 3>("data/iris-train.csv");
-    TrainData<4, 3> testData = loadData<4, 3>("data/iris-test.csv");
-    Network<4> net{{10, 8, 5, 3}};
+    auto td = loadData<13, 3>("data/wine-train.csv");
+    auto testData = loadData<13, 3>("data/wine-train.csv");
+//    auto testData2= loadData<13, 3>("data/iris-test.csv");
+
+    TrainData<13, 13> inputs;
+    std::transform(td.begin(), td.end(), std::back_inserter(inputs), [](const auto& row){
+        return TrainRow<13,13>{row.first, row.first};
+    });
+
+    AutoEncoders<13> autoEnc{};
+    autoEnc.train(inputs);
+
+    Network<4> net{{20, 15, 10, 3}};
+    std::cout << "Hello, World!" << std::endl;
 
     net.train(td, testData);
+//
+//    std::cout << net.testFitness(testData2) << std::endl;
+//
+//    std::cout << net.calculate<std::vector<double>>({5.20, 2.70, 3.90, 1.40}) << std::endl;
 
-    std::cout << net.testFitness(testData) << std::endl;
-
-    std::cout << net.calculate<std::vector<double>>({5.20, 2.70, 3.90, 1.40}) << std::endl;
-
-    std::cout << "Hello, World!" << std::endl;
     return 0;
 }
