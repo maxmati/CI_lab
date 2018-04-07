@@ -43,26 +43,29 @@ TrainData<in, out> loadData(const std::string& trainDataFile) {
 }
 
 int main() {
-    auto td = loadData<13, 3>("data/wine-train.csv");
-    auto testData = loadData<13, 3>("data/wine-train.csv");
+    auto td = loadData<4, 3>("data/iris-train.csv");
+    auto testData = loadData<4, 3>("data/iris-test.csv");
 //    auto testData2= loadData<13, 3>("data/iris-test.csv");
 
-    TrainData<13, 13> inputs;
-    std::transform(td.begin(), td.end(), std::back_inserter(inputs), [](const auto& row){
-        return TrainRow<13,13>{row.first, row.first};
+    AutoEncoders<4> autoEnc{};
+    autoEnc.train(td, testData);
+
+    Network<4> net{{8, 5, 3}};
+
+    net.registerProxyInputs(autoEnc.getOutputs(), [&](const std::vector<double>& in){
+        autoEnc.setInputs(in);
     });
 
-    AutoEncoders<13> autoEnc{};
-    autoEnc.train(inputs);
-
-    Network<4> net{{20, 15, 10, 3}};
     std::cout << "Hello, World!" << std::endl;
+//
+    net.train(td, testData, [](double lastError, double currentError,
+        double lastFitness, double currentFitness) {
+        return lastError < currentError && currentFitness > 0.9;
+    });
+//
+    std::cout << net.testFitness(testData) << std::endl;
 
-    net.train(td, testData);
-//
-//    std::cout << net.testFitness(testData2) << std::endl;
-//
-//    std::cout << net.calculate<std::vector<double>>({5.20, 2.70, 3.90, 1.40}) << std::endl;
+    std::cout << net.calculate<std::vector<double>>({5.20, 2.70, 3.90, 1.40}) << std::endl;
 
     return 0;
 }
