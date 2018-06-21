@@ -57,7 +57,7 @@ int main() {
     });
 
     std::cout << "Hello, World!" << std::endl;
-//
+
     net.train(td, testData, [](double lastError, double currentError,
         double lastFitness, double currentFitness) {
         return lastError < currentError && currentFitness > 0.9;

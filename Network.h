@@ -106,17 +106,19 @@ public:
         double currentError = std::numeric_limits<double>::max();
         double lastFitness;
         double currentFitness = std::numeric_limits<double>::min();
+        int global_step = 0;
         do {
             lastError = currentError;
             lastFitness = currentFitness;
 
             for (int i = 0; i < 50; ++i) {
                 trainBatch(trainData);
+                ++global_step;
             }
 
             currentError = testError(testData);
             currentFitness = testFitness(testData);
-            std::cout << currentFitness << " " << currentError << std::endl;
+            std::cout << global_step << " " << currentFitness << " " << currentError << std::endl;
         } while (!eval(lastError, currentError, lastFitness, currentFitness));
 //        } while (lastError > currentError || currentFitness < 0.9);
     }
